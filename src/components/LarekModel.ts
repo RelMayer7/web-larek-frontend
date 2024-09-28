@@ -1,7 +1,7 @@
 import { ILarekModel, ICard } from "../types";
 import { IEvents } from "./base/events";
 
-class LarekData implements ILarekModel {
+export class LarekModel implements ILarekModel {
   protected _items: ICard[];
   protected _basket: string[];
   protected _preview: string | null;
