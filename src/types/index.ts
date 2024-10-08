@@ -19,6 +19,8 @@ export interface IOrder extends IUser {
   total: number;
 }
 
+export type FormErrors = Partial<Record<keyof IOrder, string>>;
+
 export type IPaymentInfo = Pick<IUser, 'payment' | 'address'>
 
 export type IContactInfo = Pick<IUser, 'phone' | 'email'>
@@ -33,7 +35,3 @@ export interface ILarekModel {
   getTotalSum(): number;
   clearBasket(): void;
 }
-
-
-
-
