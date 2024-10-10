@@ -39,7 +39,7 @@ export class Form<T> extends Component<IForm> {
   }
 
   set valid(value: boolean) {
-    this._submitButton.disabled = !value;
+    this.setDisabled(this._submitButton, !value);
   }
 
   set errors(value: string) {
@@ -82,6 +82,12 @@ export class OrderForm extends Form<IPaymentInfo> {
   toggleButton(name: string) {
     this.buttons.forEach(button => {
       this.toggleClass(button, 'button_alt-active', button.name === name);
+    })
+  }
+
+  battonDisabled() {
+    this.buttons.forEach(button => {
+      this.toggleClass(button, 'button_alt-active', false);
     })
   }
 

@@ -1,12 +1,12 @@
 import {Component} from '../base/component';
 import {IEvents} from '../base/events';
 import {ensureElement} from '../../utils/utils';
+import {eventList} from '../../types/index'
 
 interface IModal {
   content: HTMLElement;
 }
 
-//добавить закрытие на ESC
 export class Modal extends Component<IModal> {
   protected _closeButton: HTMLButtonElement;
   protected _content: HTMLElement;
@@ -27,14 +27,18 @@ export class Modal extends Component<IModal> {
   }
 
   open() {
-    this.container.classList.add('modal_active');
-    this.events.emit('modal:open');
+    this.toggleModal(true);
+    this.events.emit(eventList.modalOpen);
   }
 
   close() {
-    this.container.classList.remove('modal_active');
+    this.toggleModal(false);
     this.content = null;
-    this.events.emit('modal:close');
+    this.events.emit(eventList.modalClose);
+  }
+
+  toggleModal(state: boolean) {
+    this.toggleClass(this.container, 'modal_active', state);
   }
 
   render(data: IModal): HTMLElement {

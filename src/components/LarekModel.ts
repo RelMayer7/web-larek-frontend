@@ -1,4 +1,4 @@
-import { ILarekModel, ICard, IOrder, FormErrors, IPaymentInfo, IContactInfo} from "../types";
+import { ILarekModel, ICard, IOrder, FormErrors, IPaymentInfo, IContactInfo, eventList} from "../types";
 import { IEvents } from "./base/events";
 
 export class LarekModel implements ILarekModel {
@@ -32,13 +32,13 @@ export class LarekModel implements ILarekModel {
       console.log('товар уже добавлен');
     } else {
       this._basket.push(id);
-      this.events.emit('basket:changed');
+      this.events.emit(eventList.basketChanged);
     };
   }
 
   removeItemFromBasket(id: string): void {
     this._basket = this._basket.filter(item => item !== id);
-    this.events.emit('basket:changed');
+    this.events.emit(eventList.basketChanged);
   }
 
   getTotalSum(): number {
@@ -51,7 +51,7 @@ export class LarekModel implements ILarekModel {
 
   clearBasket(): void {
     this._basket = [];
-    this.events.emit('basket:changed');
+    this.events.emit(eventList.basketChanged);
   }
 
   chekBasket(id: string): boolean {
@@ -77,7 +77,7 @@ export class LarekModel implements ILarekModel {
     this._order[field] = value;
 
     if (this.validateOrder()) {
-      this.events.emit('order:ready', this._order);
+      this.events.emit(eventList.orderReady, this._order);
     }
   }
 
@@ -85,7 +85,7 @@ export class LarekModel implements ILarekModel {
     this._order[field] = value;
     
     if (this.validateContacts()) {
-      this.events.emit('contacts:ready', this._order);
+      this.events.emit(eventList.contactsReady, this._order);
     }
   }
 
@@ -99,7 +99,7 @@ export class LarekModel implements ILarekModel {
     }
 
     this.formErrors = errors;
-    this.events.emit('formErrors:change', this.formErrors);
+    this.events.emit(eventList.formErrorsChange, this.formErrors);
     return Object.keys(errors).length === 0;
   }
 
@@ -113,15 +113,13 @@ export class LarekModel implements ILarekModel {
     }
 
     this.formErrors = errors;
-    this.events.emit('formErrors:change', this.formErrors);
+    this.events.emit(eventList.formErrorsChange, this.formErrors);
     return Object.keys(errors).length === 0;
   }
 
   setOrderItems() {
     this.basket.forEach(basketItem => {
-      if (this._items.find(item => item.id === basketItem).price === null){
-        return
-      } else this.order.items.push(basketItem);
+      this.order.items.push(basketItem);
     })
   }
 
@@ -131,7 +129,7 @@ export class LarekModel implements ILarekModel {
 
   set items(items: ICard[]) {
     this._items = items;
-    this.events.emit('cards:changed');
+    this.events.emit(eventList.cardsChanged);
   }
 
   get items() {
@@ -144,7 +142,7 @@ export class LarekModel implements ILarekModel {
 
   set preview(id: string) {
     this._preview = id;
-    this.events.emit('card:selected', this.getItem(id));
+    this.events.emit(eventList.cardSelected, this.getItem(id));
   }
 
   get order () {

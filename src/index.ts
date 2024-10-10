@@ -7,7 +7,7 @@ import {LarekApi} from './components/LarekApi';
 import {Page} from './components/common/Page';
 import {Card, CardPreview, cardBasket} from './components/common/Card';
 import {Modal} from './components/common/Modal';
-import {ICard, IOrder, IPaymentInfo, IContactInfo} from './types';
+import {ICard, IOrder, IPaymentInfo, IContactInfo, eventList} from './types';
 import {Basket} from './components/common/Basket';
 import {OrderForm, ContactsForm} from './components/common/Form';
 import {Success} from './components/common/Success';
@@ -34,14 +34,14 @@ const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 //Загружаем данные с сервера в модель
 api.getCardList()
   .then(data => larekModel.items = data)
-  .catch(err => console.log(err));
+  .catch(console.error);
 
 //Загружаем карточки
-events.on('cards:changed', () => {
+events.on(eventList.cardsChanged, () => {
   page.gallery = larekModel.items.map(item => {
     const card =  new Card(
       cloneTemplate(cardCatalogTemplate), 
-      {onClick: () => events.emit('card:select', item)}
+      {onClick: () => events.emit(eventList.cardSelect, item)}
     )
     return card.render({
       title: item.title,
@@ -57,15 +57,15 @@ events.on('cards:changed', () => {
 
 
 //Клик по карточке
-events.on('card:select', (item: ICard) => {
+events.on(eventList.cardSelect, (item: ICard) => {
   larekModel.preview = item.id;
 })
 
 //Открытие модального окна с карточкой
-events.on('card:selected', (item: ICard) => {
+events.on(eventList.cardSelected, (item: ICard) => {
   const cardPreview = new CardPreview(
     cloneTemplate(cardPreviewTemplate),
-    {onClick: () => events.emit('card:send', item)}
+    {onClick: () => events.emit(eventList.cardSend, item)}
   );
   modal.render({
     content: cardPreview.render({
@@ -77,11 +77,11 @@ events.on('card:selected', (item: ICard) => {
       id: item.id,
     })
   })
-  cardPreview.setButtonStatus(larekModel.chekBasket(item.id));
+  cardPreview.setButtonStatus(larekModel.chekBasket(item.id) || larekModel.getItem(item.id).price === null);
 })
 
 //Добавление товара в корзину.
-events.on('card:send', (item: {id: string}) => {
+events.on(eventList.cardSend, (item: {id: string}) => {
   larekModel.addItemToBasket(item.id);
   larekModel.clearPreview();
   page.counter = larekModel.basket.length;
@@ -91,11 +91,11 @@ events.on('card:send', (item: {id: string}) => {
 const basket = new Basket(cloneTemplate(basketTemplate), events);
 
 //Если корзина изменилась, рендерим ее
-events.on('basket:changed', () => {
+events.on(eventList.basketChanged, () => {
   basket.items = larekModel.basket.map(id => {
     const card = new cardBasket(
       cloneTemplate(cardBasketTemplate),
-      {onClick: () => events.emit('basket:card-delete', {id})}
+      {onClick: () => events.emit(eventList.basketCardDelete, {id})}
     )
     card.itemIndex = larekModel.basket.indexOf(id);
     return card.render({
@@ -108,13 +108,13 @@ events.on('basket:changed', () => {
 })
 
 //Открытие модального окна с корзиной
-events.on('basket:open', () => {
+events.on(eventList.basketOpen, () => {
   modal.render({ content: 
     basket.render()})
 })
 
 //если удаляем товар из корзины, рендерим модалку
-events.on('basket:card-delete', (item: {id: string}) => {
+events.on(eventList.basketCardDelete, (item: {id: string}) => {
   larekModel.removeItemFromBasket(item.id);
   modal.render({ content: 
     basket.render()}
@@ -125,7 +125,8 @@ const order = new OrderForm(cloneTemplate(orderTemplate), events);
 const contacts = new ContactsForm(cloneTemplate(contactsTemplate), events);
 
 //Открыть форму оплаты
-events.on('order:open', () => {
+events.on(eventList.orderOpen, () => {
+  order.battonDisabled();
   modal.render({
     content: order.render({
       address: '',
@@ -137,7 +138,7 @@ events.on('order:open', () => {
 })
 
 //Ошибки формы
-events.on('formErrors:change', (errors: Partial<IOrder>) => {
+events.on(eventList.formErrorsChange, (errors: Partial<IOrder>) => {
   const{address, payment, email, phone} = errors;
   order.valid = !address && !payment;
   contacts.valid = !email && !phone;
@@ -151,7 +152,7 @@ events.on(/^order..*:change/, (data: {field: keyof IPaymentInfo, value: string})
 })
 
 //Открыть форму контактной информации
-events.on('order:submit', () => {
+events.on(eventList.orderSubmit, () => {
   modal.render({
     content: contacts.render({
       phone: '',
@@ -168,7 +169,7 @@ events.on(/^contacts..*:change/, (data: {field: keyof IContactInfo, value: strin
 })
 
 //Отправляем заказ на сервер
-events.on('contacts:submit', () => {
+events.on(eventList.contactsSubmit, () => {
   larekModel.setOrderItems();
   larekModel.setOrderTotal();
   api.orderData(larekModel.order)
@@ -184,24 +185,31 @@ events.on('contacts:submit', () => {
       modal.render({
         content: success.render({})
       })
+      larekModel.clearBasket();
+      larekModel.clearOrder();
     })
-    .catch(err => {
-      console.log(err);
-    })
+    .catch(console.error);
 })
 
 //Очищаем корзину и заказ модели
-events.on('success', () => {
+events.on(eventList.success, () => {
   larekModel.clearBasket()
   larekModel.clearOrder();
 })
 
 //блокируем прокрутку страницы
-events.on('modal:open', () => {
+events.on(eventList.modalOpen, () => {
   page.locked = true;
+
+  document.addEventListener('keydown', evt => {
+    if (evt.key === 'Escape') {
+      modal.close();
+    }
+  })
+
 })
 
 //Разблокируем прокурутку страницы
-events.on('modal:close', () => {
+events.on(eventList.modalClose, () => {
   page.locked = false;
 })

@@ -12,16 +12,18 @@ class CardGeneral extends Component<ICard> {
   protected _price: HTMLElement;
   protected cardButton: HTMLButtonElement;
   
-  constructor(container: HTMLElement, actions?: ICardAction){
+  constructor(container: HTMLElement, actions: ICardAction){
     super(container);
     this._title = ensureElement<HTMLElement>('.card__title', container);
     this._price = ensureElement<HTMLElement>('.card__price', container);
+    this.cardButton = container.querySelector('.card__button');
 
-    if (this.cardButton) {
-      this.cardButton.addEventListener('click', actions.onClick);
-    } else {
-      container.addEventListener('click', actions.onClick);
+    if(actions.onClick){
+      if (this.cardButton) {
+        this.cardButton.addEventListener('click', actions.onClick);
+      } else container.addEventListener('click', actions.onClick);
     }
+
   }
 
   set title(value: string) {
@@ -46,11 +48,10 @@ export class Card extends CardGeneral {
   protected _image: HTMLImageElement;
   protected _id: string;
   
-  constructor(container: HTMLElement, actions?: ICardAction) {
+  constructor(container: HTMLElement, actions: ICardAction) {
     super(container, actions);
     this._category = ensureElement<HTMLElement>('.card__category', container);
-    this._image = ensureElement<HTMLImageElement>('.card__image', container);
-    this.cardButton = container.querySelector('.gallery__item');    
+    this._image = ensureElement<HTMLImageElement>('.card__image', container); 
   }
 
   defineCategory(key: string) {
@@ -71,7 +72,7 @@ export class Card extends CardGeneral {
   set category(value: string) {
     this.setText(this._category, value);
     this._category.className = 'card__category';
-    this._category.classList.add(this.defineCategory(value))
+    this.toggleClass(this._category, this.defineCategory(value), true);
   }
 
   set image(value: string) {
@@ -83,10 +84,9 @@ export class Card extends CardGeneral {
 export class CardPreview extends Card {
   protected _description: HTMLElement;
 
-  constructor(container: HTMLElement, actions?: ICardAction) {
+  constructor(container: HTMLElement, actions: ICardAction) {
     super(container, actions);
     this._description = ensureElement<HTMLElement>('.card__text', container);
-    this.cardButton = container.querySelector('.card__button');
   }
 
   set description(value: string) {
@@ -102,11 +102,10 @@ export class cardBasket extends CardGeneral {
   protected _itemIndex: HTMLElement;
   protected cardButton: HTMLButtonElement;
 
-  constructor(container: HTMLElement, actions?: ICardAction) {
+  constructor(container: HTMLElement, actions: ICardAction) {
     super(container, actions);
 
     this._itemIndex = ensureElement<HTMLElement>('.basket__item-index', container);
-    this.cardButton = container.querySelector('.card__button');
   }
 
   set itemIndex(value: number) {

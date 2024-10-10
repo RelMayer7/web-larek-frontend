@@ -35,3 +35,22 @@ export interface ILarekModel {
   getTotalSum(): number;
   clearBasket(): void;
 }
+
+export enum eventList {
+  cardsChanged = 'cards:changed',
+  cardSelect = 'card:select',
+  cardSelected = 'card:selected',
+  cardSend = 'card:send',
+  basketCardDelete = 'basket:card-delete',
+  basketOpen = 'basket:open',
+  basketChanged = 'basket:changed',
+  orderOpen = 'order:open',
+  formErrorsChange = 'formErrors:change',
+  orderSubmit = 'order:submit',
+  contactsSubmit = 'contacts:submit',
+  success = 'success',
+  modalOpen = 'modal:open',
+  modalClose = 'modal:close',
+  orderReady = 'order:ready',
+  contactsReady = 'contacts:ready',
+}

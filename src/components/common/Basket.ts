@@ -1,6 +1,7 @@
 import {Component} from '../base/component';
 import {IEvents} from '../base/events';
 import {ensureElement, createElement} from '../../utils/utils';
+import {eventList} from '../../types/index'
 
 interface IBasketView {
   items: HTMLElement[];
@@ -20,7 +21,7 @@ export class Basket extends Component<IBasketView> {
     this.submitButton = container.querySelector('.basket__button');
     
     this.submitButton.addEventListener('click', () => {
-      events.emit('order:open');
+      events.emit(eventList.orderOpen);
     })
 
     this.items = [];
@@ -29,12 +30,16 @@ export class Basket extends Component<IBasketView> {
   set items(items: HTMLElement[]) {
     if (items.length) {
       this._list.replaceChildren(...items);
-      this.setDisabled(this.submitButton, false);
+      this.toggleButton(false);
     } else {
-      this.setDisabled(this.submitButton, true);
+      this.toggleButton(true);
       this._list.replaceChildren(createElement<HTMLElement>('div'));
     }
   }
+
+  toggleButton(state: boolean) {
+    this.setDisabled(this.submitButton, state);
+  } 
 
   set total(total: number) {
     this.setText(this._total, `${total} синапсов`)
